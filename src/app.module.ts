@@ -20,6 +20,7 @@ import { Location } from './location/entities/location.entity';
       entities: [FarmLocation, Planting, User, Location],
       database: 'farm_db',
       synchronize: true,
+      logging: true,
     }),
     FarmLocationModule,
     PlantingModule,
