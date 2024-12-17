@@ -10,6 +10,7 @@ import { Planting } from './planting/entities/planting.entity';
 import { PlantingModule } from './planting/planting.module';
 import { User } from './user/entities/user.entity';
 import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { UserModule } from './user/user.module';
     PlantingModule,
     UserModule,
     LocationModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],
