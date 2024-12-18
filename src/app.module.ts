@@ -10,7 +10,10 @@ import { Planting } from './planting/entities/planting.entity';
 import { PlantingModule } from './planting/planting.module';
 import { User } from './user/entities/user.entity';
 import { UserModule } from './user/user.module';
+import { APP_GUARD } from '@nestjs/core';
+import { Reflector } from '@nestjs/core';
 import { AuthModule } from './auth/auth.module';
+import { AuthGuard } from './auth/auth.guard';
 
 @Module({
   imports: [
@@ -37,6 +40,11 @@ import { AuthModule } from './auth/auth.module';
     AuthModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard, // Apply AuthGuard globally
+    },
+  ],
 })
 export class AppModule {}

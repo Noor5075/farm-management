@@ -7,28 +7,40 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { jwtConstants } from './constants';
 import { Request } from 'express';
+import { Reflector } from '@nestjs/core';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    private jwtService: JwtService,
+    private reflector: Reflector, // Inject Reflector
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    // Check if the route is public
+    const isPublic = this.reflector.get<boolean>(
+      'isPublic',
+      context.getHandler(),
+    );
+    if (isPublic) {
+      return true; // Allow access to public routes
+    }
+
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
     if (!token) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('No token provided');
     }
+
     try {
       const payload = await this.jwtService.verifyAsync(token, {
         secret: jwtConstants.secret,
       });
-      // 💡 We're assigning the payload to the request object here
-      // so that we can access it in our route handlers
-      request['user'] = payload;
+      request['user'] = payload; // Attach payload to the request
     } catch {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Invalid or expired token');
     }
-    return true;
+    return true; // Allow access if the token is valid
   }
 
   private extractTokenFromHeader(request: Request): string | undefined {

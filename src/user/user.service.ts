@@ -1,9 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotAcceptableException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { PlantingService } from 'src/planting/planting.service';
 import { FarmLocationService } from 'src/farm_location/farm_location.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UserService {
@@ -12,23 +17,34 @@ export class UserService {
     private readonly farmLocationService: FarmLocationService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private jwtService: JwtService,
   ) {}
 
-  async createUser(
-    username: string,
-    password: string,
-    admin: boolean,
-  ): Promise<User> {
+  async createUser(username: string, password: string, admin: boolean) {
+    if (!username) return { message: 'User Name is empty' };
+    // Ecrypt 
     const user = this.userRepository.create({ username, password, admin });
     return this.userRepository.save(user);
   }
 
-  async validateUser(username: string, password: string): Promise<User | null> {
+  async validateUser(username: string, password: string) {
     const user = await this.userRepository.findOne({ where: { username } });
-    if (user && (await user.validatePassword(password))) {
-      return user;
+
+    if (!user)
+      throw new NotFoundException(
+        'User is not register against the email or user',
+      );
+      //decrypt
+    const isValidPassword = await user.validatePassword(password);
+    if (isValidPassword) {
+      const payload = { sub: user.userId, username: user.username };
+      const accessToken = await this.jwtService.signAsync(payload);
+      return { user, accessToken };
+    } else {
+      throw new NotAcceptableException(
+        'Invalid Password, Password is not acceptable',
+      );
     }
-    return null;
   }
 
   async getUserWithPlantingAndFarmLocation(userId: number) {

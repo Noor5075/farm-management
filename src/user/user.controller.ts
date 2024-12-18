@@ -13,30 +13,25 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserService } from './user.service';
 import { ParseIntPipe } from '@nestjs/common';
+import { Public } from 'src/auth/public';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post('login')
+  @Public()
   async login(
     @Body('username') username: string,
     @Body('password') password: string,
   ) {
-    const user = await this.userService.validateUser(username, password);
-    if (!user) {
-      return { message: 'Invalid credentials' };
-    }
-    return { message: 'Login successful', user };
+    return await this.userService.validateUser(username, password);
   }
 
   @Post()
-  async create(@Body() createUserDto: CreateUserDto): Promise<User> {
-    const user = new User();
-    user.username = createUserDto.username;
-    user.password = createUserDto.password;
-    user.admin = createUserDto.admin;
-    return this.userService.create(user);
+  @Public()
+  async create(@Body() createUserDto): Promise<User> {
+    return this.userService.create(createUserDto);
   }
 
   @Get()
