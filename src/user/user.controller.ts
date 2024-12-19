@@ -13,30 +13,21 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserService } from './user.service';
 import { ParseIntPipe } from '@nestjs/common';
+import { Public } from 'src/auth/public';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post('login')
-  async login(
-    @Body('username') username: string,
-    @Body('password') password: string,
-  ) {
-    const user = await this.userService.validateUser(username, password);
-    if (!user) {
-      return { message: 'Invalid credentials' };
-    }
-    return { message: 'Login successful', user };
+  @Public()
+  async login(@Body() loginUserBody: UpdateUserDto) {
+    return await this.userService.validateUser(loginUserBody);
   }
 
   @Post()
-  async create(@Body() createUserDto: CreateUserDto): Promise<User> {
-    const user = new User();
-    user.username = createUserDto.username;
-    user.password = createUserDto.password;
-    user.admin = createUserDto.admin;
-    return this.userService.create(user);
+  async create(@Body() createUserDto: CreateUserDto) {
+    return this.userService.createUser(createUserDto);
   }
 
   @Get()
@@ -59,22 +50,6 @@ export class UserController {
       throw new Error(`User with id ${userId} not found.`);
     }
     return user;
-  }
-
-  @Put(':userId')
-  async update(
-    @Param('userId') userId: number,
-    @Body() updateUserDto: UpdateUserDto,
-  ): Promise<User> {
-    const existingUser = await this.userService.viewUser(userId);
-    if (!existingUser) {
-      throw new Error(`User with id ${userId} not found.`);
-    }
-
-    const updatedUser = Object.assign(existingUser, updateUserDto);
-
-    await this.userService.create(updatedUser);
-    return updatedUser;
   }
 
   @Delete(':userId')
