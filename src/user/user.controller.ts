@@ -21,17 +21,13 @@ export class UserController {
 
   @Post('login')
   @Public()
-  async login(
-    @Body('username') username: string,
-    @Body('password') password: string,
-  ) {
-    return await this.userService.validateUser(username, password);
+  async login(@Body() loginUserBody: UpdateUserDto) {
+    return await this.userService.validateUser(loginUserBody);
   }
 
   @Post()
-  @Public()
-  async create(@Body() createUserDto): Promise<User> {
-    return this.userService.create(createUserDto);
+  async create(@Body() createUserDto: CreateUserDto) {
+    return this.userService.createUser(createUserDto);
   }
 
   @Get()
@@ -54,22 +50,6 @@ export class UserController {
       throw new Error(`User with id ${userId} not found.`);
     }
     return user;
-  }
-
-  @Put(':userId')
-  async update(
-    @Param('userId') userId: number,
-    @Body() updateUserDto: UpdateUserDto,
-  ): Promise<User> {
-    const existingUser = await this.userService.viewUser(userId);
-    if (!existingUser) {
-      throw new Error(`User with id ${userId} not found.`);
-    }
-
-    const updatedUser = Object.assign(existingUser, updateUserDto);
-
-    await this.userService.create(updatedUser);
-    return updatedUser;
   }
 
   @Delete(':userId')

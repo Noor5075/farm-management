@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotAcceptableException,
   NotFoundException,
@@ -9,6 +10,9 @@ import { Repository } from 'typeorm';
 import { PlantingService } from 'src/planting/planting.service';
 import { FarmLocationService } from 'src/farm_location/farm_location.service';
 import { JwtService } from '@nestjs/jwt';
+import { CreateUserDto } from './dto/create-user.dto';
+import * as bcrypt from 'bcrypt';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
@@ -20,26 +24,45 @@ export class UserService {
     private jwtService: JwtService,
   ) {}
 
-  async createUser(username: string, password: string, admin: boolean) {
-    if (!username) return { message: 'User Name is empty' };
-    // Ecrypt 
-    const user = this.userRepository.create({ username, password, admin });
-    return this.userRepository.save(user);
+  async createUser(body: CreateUserDto) {
+    if (!body?.email) return { message: 'Email is required' };
+    if (!body?.password) return { message: 'Password is not provided' };
+
+    const isEmailAlreadyRegister = await this.userRepository.findOne({
+      where: { email: body?.email },
+    });
+
+    if (isEmailAlreadyRegister)
+      throw new BadRequestException('User is Already Register to System');
+
+    const hash = await bcrypt.hash(body?.password, 10);
+    const user = this.userRepository.create({ ...body, password: hash });
+    const userObject = this.userRepository.save(user);
+    return userObject;
   }
 
-  async validateUser(username: string, password: string) {
-    const user = await this.userRepository.findOne({ where: { username } });
+  async validateUser(loginUserBody: UpdateUserDto) {
+    const user = await this.userRepository.findOne({
+      where: { email: loginUserBody?.email },
+    });
 
     if (!user)
       throw new NotFoundException(
         'User is not register against the email or user',
       );
-      //decrypt
-    const isValidPassword = await user.validatePassword(password);
+    //decrypt
+
+    const isValidPassword = await bcrypt.compare(
+      loginUserBody?.password,
+      user?.password,
+    );
+
+    const { password, ...rest } = user;
+
     if (isValidPassword) {
       const payload = { sub: user.userId, username: user.username };
       const accessToken = await this.jwtService.signAsync(payload);
-      return { user, accessToken };
+      return { user: rest, accessToken };
     } else {
       throw new NotAcceptableException(
         'Invalid Password, Password is not acceptable',
@@ -55,9 +78,6 @@ export class UserService {
       plantings,
       locations,
     };
-  }
-  async create(user: User): Promise<User> {
-    return this.userRepository.save(user);
   }
 
   async findAll(

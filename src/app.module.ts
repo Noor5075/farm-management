@@ -31,7 +31,7 @@ import { AuthGuard } from './auth/auth.guard';
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: 'Hello_key',
-      signOptions: { expiresIn: '60m' },
+      signOptions: { expiresIn: '1h' },
     }),
     FarmLocationModule,
     PlantingModule,
@@ -43,7 +43,7 @@ import { AuthGuard } from './auth/auth.guard';
   providers: [
     {
       provide: APP_GUARD,
-      useClass: AuthGuard, // Apply AuthGuard globally
+      useClass: AuthGuard,
     },
   ],
 })
