@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -11,27 +12,40 @@ import { PlantingModule } from './planting/planting.module';
 import { User } from './user/entities/user.entity';
 import { UserModule } from './user/user.module';
 import { APP_GUARD } from '@nestjs/core';
-import { Reflector } from '@nestjs/core';
+
 import { AuthModule } from './auth/auth.module';
 import { AuthGuard } from './auth/auth.guard';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      password: 'noorkhalid@123',
-      username: 'postgres',
-      entities: [FarmLocation, Planting, User, Location],
-      database: 'farm_db',
-      synchronize: true,
-      logging: true,
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        return {
+          type: 'postgres',
+          host: configService.get<string>('DB_HOST'),
+          port: parseInt(configService.get<string>('DB_PORT'), 10),
+          username: configService.get<string>('DB_USERNAME'),
+          password: configService.get<string>('DB_PASSWORD'),
+          database: configService.get<string>('DB_NAME'),
+          entities: [FarmLocation, Planting, User, Location],
+          synchronize: true,
+          logging: true,
+        };
+      },
     }),
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    JwtModule.register({
-      secret: 'Hello_key',
-      signOptions: { expiresIn: '1h' },
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('Hello_key'),
+        signOptions: { expiresIn: configService.get<string>('1h') },
+      }),
     }),
     FarmLocationModule,
     PlantingModule,

@@ -5,6 +5,22 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: ['log', 'error', 'warn', 'debug'],
+    // cors: true,
+  });
+  const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
+  app.enableCors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        // Allow if the origin is in the allowed list
+        callback(null, true);
+      } else {
+        // Reject if the origin is not in the allowed list
+        callback(new Error('Request rejected: Origin not allowed'));
+      }
+    },
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Allowed methods
+    allowedHeaders: 'Content-Type, Authorization', // Allowed headers
+    credentials: true, // Whether cookies are allowed
   });
   app.useGlobalPipes(
     new ValidationPipe({
@@ -12,7 +28,6 @@ async function bootstrap() {
       transform: true,
     }),
   );
-
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(Number(process.env.PORT) ?? 8080);
 }
 bootstrap();
