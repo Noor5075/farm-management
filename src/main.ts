@@ -8,6 +8,7 @@ async function bootstrap() {
     // cors: true,
   });
   const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
+  console.log('Allowed Origins:', allowedOrigins);
   app.enableCors({
     origin: (origin, callback) => {
       if (!origin || allowedOrigins.includes(origin)) {
@@ -28,6 +29,9 @@ async function bootstrap() {
       transform: true,
     }),
   );
-  await app.listen(Number(process.env.PORT) ?? 8080);
+  // await app.listen(Number(process.env.PORT) ?? 8080);
+  const port = Number(process.env.PORT) ?? 8080;
+  console.log(`Application is running on port: ${port}`);
+  await app.listen(port);
 }
 bootstrap();
