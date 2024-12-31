@@ -24,11 +24,12 @@ export class UserController {
   async login(@Body() loginUserBody: UpdateUserDto) {
     return await this.userService.validateUser(loginUserBody);
   }
-
+  
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
     return this.userService.createUser(createUserDto);
   }
+
 
   @Get()
   async findAll(
@@ -42,6 +43,7 @@ export class UserController {
   }> {
     return await this.userService.findAll(page, limit);
   }
+
 
   @Get(':userId')
   async findOne(@Param('userId') userId: number): Promise<User> {

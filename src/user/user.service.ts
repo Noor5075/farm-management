@@ -43,13 +43,21 @@ export class UserService {
 
   async validateUser(loginUserBody: UpdateUserDto) {
     const user = await this.userRepository.findOne({
-      where: { email: loginUserBody?.email },
+      where: { username: loginUserBody?.username },
     });
 
     if (!user)
       throw new NotFoundException(
         'User is not register against the email or user',
       );
+
+      if ( !loginUserBody?.password) {
+        throw new BadRequestException(' password missing');
+      }
+
+      // if (!loginUserBody?.email ) {
+      //   throw new BadRequestException('Email  missing');
+      // }
     //decrypt
 
     const isValidPassword = await bcrypt.compare(

@@ -12,7 +12,8 @@ import { PlantingModule } from './planting/planting.module';
 import { User } from './user/entities/user.entity';
 import { UserModule } from './user/user.module';
 import { APP_GUARD } from '@nestjs/core';
-
+import { AppService } from './app.service';
+import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
 import { AuthGuard } from './auth/auth.guard';
 
@@ -53,12 +54,13 @@ import { AuthGuard } from './auth/auth.guard';
     LocationModule,
     AuthModule,
   ],
-  controllers: [],
+  controllers: [AppController],
   providers: [
     {
       provide: APP_GUARD,
       useClass: AuthGuard,
     },
+    AppService
   ],
 })
 export class AppModule {}
