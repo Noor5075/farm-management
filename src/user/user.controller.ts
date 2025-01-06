@@ -8,6 +8,7 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -24,25 +25,31 @@ export class UserController {
   async login(@Body() loginUserBody: UpdateUserDto) {
     return await this.userService.validateUser(loginUserBody);
   }
-  
+
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
     return this.userService.createUser(createUserDto);
   }
 
-
+  @Public()
   @Get()
-  async findAll(
-    @Query('page', ParseIntPipe) page?: number,
-    @Query('limit', ParseIntPipe) limit?: number,
-  ): Promise<{
-    data: User[];
-    total: number;
-    page?: number;
-    limit?: number;
-  }> {
-    return await this.userService.findAll(page, limit);
+async findAll(@Query() queryParams: any): Promise<{ data: User[]; total: number }> {
+  const { filter, page, limit } = queryParams;
+
+  let parsedFilter;
+  try {
+    parsedFilter = filter ? JSON.parse(filter) : null;
+  } catch (error) {
+    throw new BadRequestException('Invalid filter format');
   }
+
+  const queryObject = {
+    ...queryParams,
+    filter: parsedFilter, // Replace the filter with parsed JSON
+  };
+
+  return this.userService.findAll(queryObject);
+}
 
 
   @Get(':userId')

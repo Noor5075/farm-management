@@ -6,12 +6,13 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { Repository, Like } from 'typeorm';
 import { PlantingService } from 'src/planting/planting.service';
 import { FarmLocationService } from 'src/farm_location/farm_location.service';
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
+import { ApiFeature } from 'src/utils/apifeature';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
@@ -51,13 +52,13 @@ export class UserService {
         'User is not register against the email or user',
       );
 
-      if ( !loginUserBody?.password) {
-        throw new BadRequestException(' password missing');
-      }
+    if (!loginUserBody?.password) {
+      throw new BadRequestException(' password missing');
+    }
 
-      // if (!loginUserBody?.email ) {
-      //   throw new BadRequestException('Email  missing');
-      // }
+    // if (!loginUserBody?.email ) {
+    //   throw new BadRequestException('Email  missing');
+    // }
     //decrypt
 
     const isValidPassword = await bcrypt.compare(
@@ -87,28 +88,17 @@ export class UserService {
       locations,
     };
   }
+  async findAll(queryParams: any) {
+    const queryBuilder = this.userRepository.createQueryBuilder('user');
 
-  async findAll(
-    page?: number,
-    limit?: number,
-  ): Promise<{
-    data: User[];
-    total: number;
-    page?: number;
-    limit?: number;
-  }> {
-    if (page && limit) {
-      // Paginated query
-      const [data, total] = await this.userRepository.findAndCount({
-        skip: (page - 1) * limit,
-        take: limit,
-      });
-      return { data, total, page, limit };
-    } else {
-      // Non-paginated query
-      const data = await this.userRepository.find();
-      return { data, total: data.length };
-    }
+    // Pass parsed filter to ApiFeature
+    const apiFeature = new ApiFeature(queryBuilder, queryParams.filter || {});
+    apiFeature.filter().paginate();
+
+    const data = await apiFeature.getQuery().getMany();
+    const total = await queryBuilder.getCount();
+
+    return { data, total };
   }
 
   async findUserByUsername(username: string): Promise<User | null> {

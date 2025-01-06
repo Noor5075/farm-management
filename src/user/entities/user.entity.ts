@@ -29,7 +29,7 @@ export class User {
   @Column()
   password: string;
 
-  @Column()
+  @Column({ type: 'boolean' })
   admin: boolean;
 
   @OneToMany(() => FarmLocation, (farmLocation) => farmLocation.user)
