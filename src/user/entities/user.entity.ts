@@ -18,7 +18,7 @@ const IV_LENGTH = 16; // Length of IV (Initialization Vector)
 @Entity()
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  userId: number;
+  userId: string;
 
   @Column()
   username: string;

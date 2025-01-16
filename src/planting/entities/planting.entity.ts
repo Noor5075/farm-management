@@ -4,6 +4,7 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
+  CreateDateColumn,
 } from 'typeorm';
 import { Location } from 'src/location/entities/location.entity';
 import { User } from 'src/user/entities/user.entity';
@@ -13,6 +14,15 @@ export class Planting {
   // Defining unidueId of planting by uuid
   @PrimaryGeneratedColumn('uuid')
   plantingId: string;
+
+  // Timestamp for when the entity is created. Automatically handled by TypeORM.
+  @CreateDateColumn({ type: 'timestamp' })
+  createdAt: Date;
+
+  // Unique identifier for the user who created the planting record.
+  // This field is mandatory.
+  @Column({ nullable: false })
+  createdBy: string;
 
   @Column({ nullable: false })
   cropVariety: string;
@@ -186,12 +196,7 @@ export class Planting {
   // This field is optional.
   @Column({ nullable: true })
   seedQuantityUnit: string;
-
-  // Unique identifier for the user who created the planting record.
-  // This field is mandatory.
-  @Column({ nullable: false })
-  createdBy: string;
-
+ 
   // Unique identifier for the user who last updated the planting record.
   // This field is optional.
   @Column({ nullable: true })

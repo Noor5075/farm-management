@@ -1,66 +1,75 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested, IsArray } from 'class-validator';
+import { Type } from 'class-transformer';
 
-export class CreateLocationDto{
-    @IsString()
-    @IsNotEmpty()
-    name: string;
+class Coordinates {
+  @IsNumber()
+  lat: number;
 
-    @IsNumber()
-    farmId: number;
+  @IsNumber()
+  lng: number;
+}
+export class CreateLocationDto {
+  @IsString()
+  @IsNotEmpty()
+  name: string;
 
-    @IsNumber()
-    area: number;
+  @IsNumber()
+  farmId: number;
 
-    @IsNumber()
-    areaUnitId: number;
+  @IsNumber()
+  area: number;
 
-    @IsNumber()
-    provinceId: number;
+  @IsNumber()
+  areaUnitId: number;
 
-    @IsNumber()
-    divisionId: number;
+  @IsNumber()
+  provinceId: number;
 
-    @IsNumber()
-    tehsilId: number;
+  @IsNumber()
+  divisionId: number;
 
-    @IsNumber()
-    leaseRate: number;
+  @IsNumber()
+  tehsilId: number;
 
-    @IsNumber()
-    shareTenancyPercentage: number;
+  @IsNumber()
+  leaseRate: number;
 
-    @IsNumber()
-    @IsOptional()
-    coordinates?: { lat: number; lng: number };
+  @IsNumber()
+  shareTenancyPercentage: number;
 
-    @IsNumber()
-    @IsOptional()
-    markLocation?: { lat: number; lng: number };
+  @ValidateNested()
+  @Type(() => Coordinates)
+  coordinates?: Coordinates;
 
-    @IsString()
-    postalAddress: string;
+  @ValidateNested()
+  @Type(() => Coordinates)
+  markLocation?: Coordinates;
 
-    @IsNumber()
-    soilTypeId: number;
+  @IsString()
+  postalAddress: string;
 
-    @IsNumber()
-    ownershipId: number;
+  @IsNumber()
+  soilTypeId: number;
 
-    @IsNumber()
-    estimatedCost: number;
+  @IsNumber()
+  ownershipId: number;
 
-    @IsNumber()
-    irrigationMethodId: number;
+  @IsNumber()
+  estimatedCost: number;
 
-    @IsNumber()
-    areaUnit: number;
+  @IsArray()
+  @IsOptional()
+  irrigationMethodId?: number[];
 
-    @IsString()
-    createdBy: string
+  @IsNumber()
+  areaUnit: number;
 
-    @IsString()
-    updatedBy: string;
+  @IsString()
+  createdBy: string;
 
-    @IsNumber()
-    plantingId: number;
+  @IsString()
+  updatedBy: string;
+
+  @IsNumber()
+  plantingId: number;
 }

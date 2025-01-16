@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber, IsOptional, IsUUID } from 'class-validator';
 
 export class CreateFarmLocationDto {
   // Defining the name with the type string
@@ -32,7 +32,11 @@ export class CreateFarmLocationDto {
   @IsOptional()
   action?: string;
 
+  @IsString()
+  @IsNotEmpty()
+  createdBy: string;
+
   // Defining userId as a number
-  @IsNumber()
-  userId: number;
+  @IsUUID()
+  userId: string;
 }

@@ -14,6 +14,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { ApiFeature } from 'src/utils/apifeature';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { LoginDto } from 'src/auth/dto/login.dto';
 
 @Injectable()
 export class UserService {
@@ -42,7 +43,7 @@ export class UserService {
     return userObject;
   }
 
-  async validateUser(loginUserBody: UpdateUserDto) {
+  async validateUser(loginUserBody: LoginDto) {
     const user = await this.userRepository.findOne({
       where: { username: loginUserBody?.username },
     });
@@ -55,11 +56,6 @@ export class UserService {
     if (!loginUserBody?.password) {
       throw new BadRequestException(' password missing');
     }
-
-    // if (!loginUserBody?.email ) {
-    //   throw new BadRequestException('Email  missing');
-    // }
-    //decrypt
 
     const isValidPassword = await bcrypt.compare(
       loginUserBody?.password,
@@ -79,15 +75,32 @@ export class UserService {
     }
   }
 
-  async getUserWithPlantingAndFarmLocation(userId: number) {
-    const plantings = await this.plantingService.findAll();
-    const locations = await this.farmLocationService.findAll();
+  async getUserWithPlantingAndFarmLocation(userId: string) {
+    const plantings = await this.plantingService.findAll({});
+    const locations = await this.farmLocationService.findAll({});
     return {
       userId,
       plantings,
       locations,
     };
   }
+
+  async updateUser(
+    userId: string,
+    updateUserDto: UpdateUserDto,
+  ): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { userId } });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    // Merge the updates into the existing user
+    const updatedUser = this.userRepository.merge(user, updateUserDto);
+
+    return this.userRepository.save(updatedUser); // Save and return the updated user
+  }
+
   async findAll(queryParams: any) {
     const queryBuilder = this.userRepository.createQueryBuilder('user');
 
@@ -101,15 +114,31 @@ export class UserService {
     return { data, total };
   }
 
+  async updatePartialUser(
+    userId: string,
+    updateUserDto: Partial<UpdateUserDto>,
+  ): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { userId } });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    // Merge the updates into the existing user
+    const updatedUser = this.userRepository.merge(user, updateUserDto);
+
+    return this.userRepository.save(updatedUser); // Save and return the updated user
+  }
+
   async findUserByUsername(username: string): Promise<User | null> {
     return this.userRepository.findOneBy({ username });
   }
 
-  viewUser(userId: number): Promise<User> {
+  viewUser(userId: string): Promise<User> {
     return this.userRepository.findOneBy({ userId });
   }
 
-  updateUser(userId: number): Promise<{ affected?: number }> {
+  async deleteUser(userId: string) {
     return this.userRepository.delete(userId);
   }
 }

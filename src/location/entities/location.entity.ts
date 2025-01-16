@@ -1,10 +1,22 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Planting } from 'src/planting/entities/planting.entity';
 
 @Entity()
 export class Location {
   @PrimaryGeneratedColumn('uuid')
-  locationId: number;
+  locationId: string;
+
+  @Column()
+  createdBy: string;
+
+  @Column()
+  updatedBy: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 
   @Column()
   name: string;
@@ -56,12 +68,6 @@ export class Location {
 
   @Column()
   areaUnit: number;
-
-  @Column()
-  createdBy: string;
-
-  @Column()
-  updatedBy: string;
 
   @Column({ nullable: true })
   plantingId: number|null;
